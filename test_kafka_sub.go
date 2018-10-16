@@ -1,30 +1,33 @@
 package main
 
 import (
-   "fmt"
-   "github.com/labstack/echo"
-   "github.com/labstack/echo/middleware"
-   "github.com/sirupsen/logrus"
-   "net/http"
-)
-var log =logrus.New()
+	"fmt"
 
-func init() {
-   log.Formatter = new(logrus.JSONFormatter)
-   log.Formatter = new(logrus.TextFormatter) // default
-   log.Level = logrus.DebugLevel
-}
+	"github.com/confluentinc/confluent-kafka-go/kafka"
+)
 
 func main() {
-   fmt.Println("Main function :")
-   e := echo.New()
-   e.Use(middleware.Logger())
-   e.Use(middleware.Recover())
-   // Routes
-   e.GET("/go-docker",  goWithDocker)
-   e.Logger.Fatal(e.Start(":8080"))
-}
+	c, err := kafka.NewConsumer(&kafka.ConfigMap{
+		"bootstrap.servers": "localhost",
+		"group.id":          "myGroup",
+		"auto.offset.reset": "earliest",
+	})
 
-func goWithDocker(c echo.Context)error{
- return c.JSON(http.StatusOK, "Go with Docker Container v2")
+	if err != nil {
+		panic(err)
+	}
+
+	c.SubscribeTopics([]string{"myTopic", "^aRegex.*[Tt]opic"}, nil)
+
+	for {
+		msg, err := c.ReadMessage(-1)
+		if err == nil {
+			fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
+		} else {
+			// The client will automatically try to recover from all errors.
+			fmt.Printf("Consumer error: %v (%v)\n", err, msg)
+		}
+	}
+
+	c.Close()
 }
