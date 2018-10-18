@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	broker := "127.0.0.1:9092"
+	broker := "10.0.165.252:9092"
 	// topic := "test-topic"
 
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
