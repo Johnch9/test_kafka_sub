@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	broker := "10.0.165.252:9092"
+	broker := "my-confluent-oss-cp-kafka:9092"
 	// topic := "test-topic"
 
 	c, err := kafka.NewConsumer(&kafka.ConfigMap{
